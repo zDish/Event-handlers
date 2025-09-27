@@ -75,9 +75,12 @@ async function parseCommand(fromUser, message, viaWhisper = false) {
   }
 }
 
+// --- EVENT HANDLERS ---
+
 // chat
 client.on("chat", async ({ user, message, isWhisper }) => {
-  console.log(`[CHAT] ${isWhisper ? "(whisper) " : ""}${user?.username}: ${message}`);
+  const uname = user?.username ?? "?";
+  console.log(`[CHAT] ${isWhisper ? "(whisper) " : ""}${uname}: ${message}`);
   if (message?.startsWith("!")) {
     await parseCommand(user, message, Boolean(isWhisper));
   }
@@ -85,10 +88,66 @@ client.on("chat", async ({ user, message, isWhisper }) => {
 
 // whisper (if SDK exposes separately)
 client.on?.("whisper", async ({ user, message }) => {
-  console.log(`[WHISPER] ${user?.username}: ${message}`);
+  const uname = user?.username ?? "?";
+  console.log(`[WHISPER] ${uname}: ${message}`);
   if (message?.startsWith("!")) await parseCommand(user, message, true);
 });
 
-// emote
+// emote (patched: no nested template strings)
 client.on("emote", ({ user, emote_id, receiver }) => {
-  console.log(`[EMOTE] ${user
+  const uname = user?.username ?? "?";
+  const target = receiver?.username ? ` to ${receiver.username}` : "";
+  const emote = emote_id ?? "unknown_emote";
+  console.log(`[EMOTE] ${uname} did ${emote}${target}`);
+});
+
+// reaction
+client.on("reaction", ({ user, reaction, receiver }) => {
+  const uname = user?.username ?? "?";
+  const target = receiver?.username ?? "?";
+  const rid = reaction?.id ?? JSON.stringify(reaction ?? {});
+  console.log(`[REACTION] ${uname} -> ${target} : ${rid}`);
+});
+
+// user_joined
+client.on("user_joined", ({ user }) => {
+  console.log(`[JOIN] ${user?.username ?? "?"}`);
+});
+
+// user_left
+client.on("user_left", ({ user }) => {
+  console.log(`[LEAVE] ${user?.username ?? "?"}`);
+});
+
+// user_moved
+client.on("user_moved", ({ user, position }) => {
+  const p = position || {};
+  console.log(`[MOVE] ${user?.username ?? "?"} -> x:${p.x} y:${p.y} z:${p.z}`);
+});
+
+// tip_reaction
+client.on("tip_reaction", ({ sender, receiver, tip }) => {
+  const s = sender?.username ?? "?";
+  const r = receiver?.username ?? "?";
+  const t = tip?.type ?? "";
+  const amt = tip?.amount ?? "";
+  console.log(`[TIP] ${s} -> ${r} : ${t} ${amt}`.trim());
+});
+
+// voice
+client.on("voice", ({ user, speaking }) => {
+  console.log(`[VOICE] ${user?.username ?? "?"} speaking=${Boolean(speaking)}`);
+});
+
+// channel
+client.on("channel", ({ sender_id, message, tags }) => {
+  const tagStr = Array.isArray(tags) ? [...new Set(tags)].join(",") : "";
+  console.log(`[CHANNEL] from:${sender_id} tags:${tagStr} msg:${message}`);
+});
+
+// fallback
+client.on("*", (payload) => {
+  if (payload?.event && payload?.data) {
+    console.log(`[ANY] ${payload.event}`, payload.data);
+  }
+});
