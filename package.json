@@ -1,0 +1,13 @@
+{
+  "name": "hr-events-bot",
+  "version": "1.0.0",
+  "description": "Highrise bot that lists and logs all event handlers",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "highrise-js-sdk": "^1.0.0"
+  }
+}
