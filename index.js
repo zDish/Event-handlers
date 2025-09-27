@@ -13,11 +13,12 @@ const EVENTS = [
   "channel",
 ];
 
+// Hard-coded room ID
+const ROOM_ID = "6682bdb29a847a2f1c0c0667";
 const token = process.env.BOT_TOKEN;
-const room = process.env.ROOM_ID;
 
-if (!token || !room) {
-  console.error("Missing BOT_TOKEN or ROOM_ID in environment variables.");
+if (!token) {
+  console.error("Missing BOT_TOKEN in environment variables.");
   process.exit(1);
 }
 
@@ -30,7 +31,7 @@ const eventsListMsg =
 
 const client = new Highrise({
   token,
-  room,
+  room: ROOM_ID,
   events: EVENTS,
   reconnect: 5,
 });
@@ -90,48 +91,4 @@ client.on?.("whisper", async ({ user, message }) => {
 
 // emote
 client.on("emote", ({ user, emote_id, receiver }) => {
-  console.log(`[EMOTE] ${user?.username} did ${emote_id} ${receiver ? `to ${receiver.username}` : ""}`.trim());
-});
-
-// reaction
-client.on("reaction", ({ user, reaction, receiver }) => {
-  console.log(`[REACTION] ${user?.username} -> ${receiver?.username} : ${reaction?.id || JSON.stringify(reaction)}`);
-});
-
-// user_joined
-client.on("user_joined", ({ user }) => {
-  console.log(`[JOIN] ${user?.username}`);
-});
-
-// user_left
-client.on("user_left", ({ user }) => {
-  console.log(`[LEAVE] ${user?.username}`);
-});
-
-// user_moved
-client.on("user_moved", ({ user, position }) => {
-  const p = position || {};
-  console.log(`[MOVE] ${user?.username} -> x:${p.x} y:${p.y} z:${p.z}`);
-});
-
-// tip_reaction
-client.on("tip_reaction", ({ sender, receiver, tip }) => {
-  console.log(`[TIP] ${sender?.username} -> ${receiver?.username} : ${tip?.type || ""} ${tip?.amount || ""}`);
-});
-
-// voice
-client.on("voice", ({ user, speaking }) => {
-  console.log(`[VOICE] ${user?.username} speaking=${speaking}`);
-});
-
-// channel
-client.on("channel", ({ sender_id, message, tags }) => {
-  console.log(`[CHANNEL] from:${sender_id} tags:${[...new Set(tags || [])].join(",")} msg:${message}`);
-});
-
-// fallback
-client.on("*", (payload) => {
-  if (payload?.event && payload?.data) {
-    console.log(`[ANY] ${payload.event}`, payload.data);
-  }
-});
+  console.log(`[EMOTE] ${user
